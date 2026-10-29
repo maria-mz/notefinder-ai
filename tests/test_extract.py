@@ -1,14 +1,12 @@
 import asyncio
-import json
 import base64
+import json
 from types import SimpleNamespace as NS
 from unittest.mock import AsyncMock
 
 import pytest
 
-from extract import BadOutputError, extract_page, parse_output
-
-# Constants
+from extract import BadOutputError, Extractor, parse_output
 
 GOOD = {
     "transcript": "∀x P(x)",
@@ -19,8 +17,6 @@ GOOD = {
 PNG = b"\x89PNG fake image bytes"
 PROMPT = "Transcribe this page."
 
-
-# Helpers
 
 def text_block(text):
     return NS(type="text", text=text)
@@ -44,14 +40,13 @@ def make_client(content, **kwargs):
 
 
 def call(client, **kwargs):
-    return asyncio.run(extract_page(client, PNG, PROMPT, **kwargs))
+    extractor = Extractor(client, **kwargs)
+    return asyncio.run(extractor.extract(PNG, PROMPT))
 
 
 def without(key):
     return {k: v for k, v in GOOD.items() if k != key}
 
-
-# parse_output
 
 def test_parse_output_accepts_valid_json():
     assert parse_output(json.dumps(GOOD)) == GOOD
@@ -85,16 +80,14 @@ def test_parse_output_rejects_non_object():
         ({**GOOD, "summary": "   "}, "summary"),
         ({**GOOD, "transcript": ""}, "transcript"),
         ({**GOOD, "transcript": "  \n"}, "transcript"),
-    ]
+    ],
 )
 def test_parse_output_rejects_bad_fields(data, field):
     with pytest.raises(BadOutputError, match=field):
         parse_output(json.dumps(data))
 
 
-# extract_page
-
-def test_extract_page_returns_fields_and_token_counts():
+def test_extractor_returns_fields_and_token_counts():
     client = make_client(
         [text_block(json.dumps(GOOD))],
         input_tokens=3519,
@@ -110,7 +103,7 @@ def test_extract_page_returns_fields_and_token_counts():
     assert result.output_tokens == 686
 
 
-def test_extract_page_skips_thinking_blocks():
+def test_extractor_skips_thinking_blocks():
     client = make_client([
         thinking_block(),
         text_block(json.dumps(GOOD)),
@@ -119,7 +112,7 @@ def test_extract_page_skips_thinking_blocks():
     assert call(client).summary == GOOD["summary"]
 
 
-def test_extract_page_rejects_truncated_output():
+def test_extractor_rejects_truncated_output():
     client = make_client(
         [text_block('{"transcript": "cut off')],
         stop_reason="max_tokens",
@@ -129,27 +122,28 @@ def test_extract_page_rejects_truncated_output():
         call(client)
 
 
-def test_extract_page_rejects_response_without_text():
+def test_extractor_rejects_response_without_text():
     client = make_client([thinking_block()])
 
     with pytest.raises(BadOutputError, match="no text block"):
         call(client)
 
 
-def test_extract_page_propagates_bad_json():
+def test_extractor_propagates_bad_json():
     client = make_client([text_block("Sorry, I can't read this page.")])
 
     with pytest.raises(BadOutputError, match="invalid JSON"):
         call(client)
 
 
-def test_extract_page_sends_expected_message():
+def test_extractor_sends_expected_message():
     client = make_client([text_block(json.dumps(GOOD))])
     call(client, model="some-model")
 
     sent = client.messages.create.call_args.kwargs
 
     assert sent["model"] == "some-model"
+    assert sent["max_tokens"] > 0
     assert sent["messages"] == [{
         "role": "user",
         "content": [

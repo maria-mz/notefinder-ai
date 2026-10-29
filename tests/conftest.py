@@ -6,8 +6,8 @@ import pytest
 import db
 
 
-TEST_URL = "postgresql://notefinder:notefinder@localhost:5433/notefinder_test"
 TEST_DB_NAME = "notefinder_test"
+TEST_URL = f"postgresql://notefinder:notefinder@localhost:5433/{TEST_DB_NAME}"
 COMPOSE = ["docker", "compose", "-f",
            str(Path(__file__).parent.parent / "docker-compose.test.yml")]
 

@@ -55,43 +55,43 @@ def parse_output(text: str) -> dict:
     return data
 
 
-async def extract_page(client: AsyncAnthropic, png_bytes: bytes, prompt: str,
-                       model: str = MODEL) -> Extraction:
-    image_b64 = base64.standard_b64encode(png_bytes).decode("ascii")
-    response = await client.messages.create(
-        model=model,
-        max_tokens=MAX_TOKENS,
-        messages=[{
-            "role": "user",
-            "content": [
-                {
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": "image/png",
-                        "data": image_b64
-                    }
-                },
-                {
-                    "type": "text",
-                    "text": prompt
-                },
-            ],
-        }],
-    )
-    if response.stop_reason != "end_turn":
-        raise BadOutputError(f"stopped early: {response.stop_reason}")
+class Extractor:
+    def __init__(self, client: AsyncAnthropic, model: str = MODEL):
+        self.client = client
+        self.model = model
 
-    text = "".join(block.text for block in response.content if block.type == "text")
-    if not text:
-        raise BadOutputError("response contained no text block")
+    async def extract(self, png_bytes: bytes, prompt: str) -> Extraction:
+        image_b64 = base64.standard_b64encode(png_bytes).decode("ascii")
+        response = await self.client.messages.create(
+            model=self.model,
+            max_tokens=MAX_TOKENS,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/png",
+                            "data": image_b64,
+                        },
+                    },
+                    {"type": "text", "text": prompt},
+                ],
+            }],
+        )
+        if response.stop_reason != "end_turn":
+            raise BadOutputError(f"stopped early: {response.stop_reason}")
 
-    data = parse_output(text)
+        text = "".join(block.text for block in response.content if block.type == "text")
+        if not text:
+            raise BadOutputError("response contained no text block")
 
-    return Extraction(
-        transcript=data["transcript"],
-        concepts=data["concepts"],
-        summary=data["summary"],
-        input_tokens=response.usage.input_tokens,
-        output_tokens=response.usage.output_tokens,
-    )
+        data = parse_output(text)
+        return Extraction(
+            transcript=data["transcript"],
+            concepts=data["concepts"],
+            summary=data["summary"],
+            input_tokens=response.usage.input_tokens,
+            output_tokens=response.usage.output_tokens,
+        )
