@@ -1,0 +1,21 @@
+name: notefinder-test
+
+services:
+  db-test:
+    image: pgvector/pgvector:pg17
+    container_name: notefinder-db-test
+    environment:
+      POSTGRES_USER: notefinder
+      POSTGRES_PASSWORD: notefinder
+      POSTGRES_DB: notefinder_test
+    ports:
+      - "127.0.0.1:5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notefinder -d notefinder_test"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
