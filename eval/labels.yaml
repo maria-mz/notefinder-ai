@@ -1,0 +1,185 @@
+relevance_rule: "Page mentions or works an example of the topic."
+
+queries:
+  - query: probability tree diagram
+    relevant:
+      - {file: stats/assignment4.pdf, page: 4}
+      - {file: stats/midterm-1-practice.pdf, page: 10}
+
+  - query: system calls
+    relevant:
+      - {file: os/osc-2-4.pdf, page: 1}
+      - {file: os/osc-2-4.pdf, page: 2}
+
+  - query: Dijkstra's algorithm
+    relevant:
+      - {file: dsa/final-review.pdf, page: 6}
+      - {file: dsa/final-review.pdf, page: 7}
+
+  - query: minimum spanning trees
+    relevant:
+      - {file: dsa/final-review.pdf, page: 7}
+      - {file: dsa/final-review.pdf, page: 8}
+      - {file: dsa/final-review.pdf, page: 9}
+      - {file: dsa/final-review.pdf, page: 10}
+      - {file: dsa/final-review.pdf, page: 11}
+
+  - query: MSTs
+    relevant:
+      - {file: dsa/final-review.pdf, page: 7}
+      - {file: dsa/final-review.pdf, page: 8}
+      - {file: dsa/final-review.pdf, page: 9}
+      - {file: dsa/final-review.pdf, page: 10}
+      - {file: dsa/final-review.pdf, page: 11}
+
+  - query: np-completeness
+    relevant:
+      - {file: dsa/final-review.pdf, page: 1}
+      - {file: dsa/final-review.pdf, page: 15}
+
+  - query: big-O
+    relevant:
+      - {file: dsa/hw1-q1.pdf, page: 1}
+      - {file: dsa/hw1-q1.pdf, page: 5}
+
+  - query: stable matching problem
+    relevant:
+      - {file: dsa/final-review.pdf, page: 1}
+      - {file: dsa/final-review.pdf, page: 2}
+      - {file: dsa/hw1-q1.pdf, page: 1}
+      - {file: dsa/hw1-q1.pdf, page: 2}
+      - {file: dsa/hw1-q1.pdf, page: 5}
+
+  - query: stable marriage problem
+    relevant:
+      - {file: dsa/final-review.pdf, page: 1}
+      - {file: dsa/final-review.pdf, page: 2}
+      - {file: dsa/hw1-q1.pdf, page: 1}
+      - {file: dsa/hw1-q1.pdf, page: 2}
+      - {file: dsa/hw1-q1.pdf, page: 5}
+
+  - query: topological sort
+    relevant:
+      - {file: dsa/hw1-q1.pdf, page: 4}
+      - {file: dsa/final-review.pdf, page: 4}
+
+  - query: expected value
+    relevant:
+      - {file: stats/assignment4.pdf, page: 5}
+      - {file: stats/assignment4.pdf, page: 6}
+      - {file: stats/assignment4.pdf, page: 7}
+      - {file: stats/assignment4.pdf, page: 8}
+
+  - query: De Morgan's law
+    relevant:
+      - {file: stats/midterm-1-practice.pdf, page: 2}
+      - {file: stats/midterm-1-practice.pdf, page: 3}
+      - {file: discrete-math/hw-1.pdf, page: 3}
+      - {file: discrete-math/hw-5.pdf, page: 2}
+      - {file: discrete-math/hw-5.pdf, page: 3}
+      - {file: discrete-math/hw-5.pdf, page: 6}
+      - {file: discrete-math/hw-3.pdf, page: 3}
+
+  - query: binomial probability
+    relevant:
+      - {file: stats/midterm-1-practice.pdf, page: 11}
+      - {file: stats/midterm-1-practice.pdf, page: 12}
+      - {file: stats/assignment4.pdf, page: 1}
+
+  - query: truth tables
+    relevant:
+      - {file: discrete-math/hw-1.pdf, page: 1}
+      - {file: discrete-math/hw-1.pdf, page: 2}
+      - {file: discrete-math/hw-1.pdf, page: 3}
+      - {file: discrete-math/hw-1.pdf, page: 4}
+      - {file: discrete-math/hw-1.pdf, page: 5}
+      - {file: discrete-math/hw-1.pdf, page: 6}
+
+  - query: hasse diagrams
+    relevant:
+      - {file: discrete-math/hw-6.pdf, page: 5}
+      - {file: discrete-math/hw-6.pdf, page: 6}
+
+  - query: poset diagrams
+    relevant:
+      - {file: discrete-math/hw-6.pdf, page: 5}
+      - {file: discrete-math/hw-6.pdf, page: 6}
+
+  - query: operating system structures
+    relevant:
+      - {file: os/osc-2-4.pdf, page: 3}
+
+  - query: client-server
+    relevant:
+      - {file: os/osc-1.1-1.12.pdf, page: 7}
+
+  - query: dynamic programming
+    relevant:
+      - {file: dsa/final-review.pdf, page: 14}
+
+  - query: DP
+    relevant:
+      - {file: dsa/final-review.pdf, page: 14}
+
+  - query: PMF table
+    relevant:
+      - {file: stats/midterm-1-practice.pdf, page: 10}
+      - {file: stats/assignment4.pdf, page: 1}
+      - {file: stats/assignment4.pdf, page: 2}
+
+  - query: CDF table
+    relevant:
+      - {file: stats/assignment4.pdf, page: 1}
+
+  - query: Venn diagrams
+    relevant:
+      - {file: stats/midterm-1-practice.pdf, page: 2}
+      - {file: stats/midterm-1-practice.pdf, page: 4}
+      - {file: discrete-math/hw-5.pdf, page: 3}
+      - {file: discrete-math/hw-5.pdf, page: 4}
+
+  - query: knights and knaves
+    relevant:
+      - {file: discrete-math/hw-1.pdf, page: 1}
+      - {file: discrete-math/hw-1.pdf, page: 2}
+
+  - query: mathematical relations
+    relevant:
+      - {file: discrete-math/hw-6.pdf, page: 1}
+      - {file: discrete-math/hw-6.pdf, page: 2}
+      - {file: discrete-math/hw-6.pdf, page: 3}
+      - {file: discrete-math/hw-6.pdf, page: 4}
+      - {file: discrete-math/hw-6.pdf, page: 5}
+      - {file: discrete-math/hw-6.pdf, page: 6}
+      - {file: discrete-math/hw-6.pdf, page: 7}
+
+  - query: Hall's theorem
+    relevant:
+      - {file: dsa/hw4-written.pdf, page: 1}
+      - {file: dsa/hw4-written.pdf, page: 2}
+
+  - query: dice problems
+    relevant:
+      - {file: stats/assignment4.pdf, page: 1}
+
+  - query: BFS
+    relevant:
+      - {file: dsa/hw1-q1.pdf, page: 3}
+      - {file: dsa/final-review.pdf, page: 2}
+      - {file: dsa/final-review.pdf, page: 3}
+      - {file: dsa/final-review.pdf, page: 5}
+
+  - query: DFS
+    relevant:
+      - {file: dsa/hw1-q1.pdf, page: 3}
+      - {file: dsa/final-review.pdf, page: 3}
+      - {file: dsa/final-review.pdf, page: 5}
+
+  - query: conditional probability
+    relevant:
+      - {file: stats/assignment4.pdf, page: 2}
+      - {file: stats/assignment4.pdf, page: 4}
+      - {file: stats/assignment4.pdf, page: 5}
+      - {file: stats/assignment4.pdf, page: 10}
+      - {file: stats/midterm-1-practice.pdf, page: 8}
+      - {file: stats/midterm-1-practice.pdf, page: 9}
