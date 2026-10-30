@@ -4,8 +4,7 @@ from dataclasses import dataclass
 
 from anthropic import AsyncAnthropic
 
-MODEL = "claude-sonnet-5-5"
-MAX_TOKENS = 8192
+from notefinder.prompt import Prompt
 
 
 class BadOutputError(Exception):
@@ -21,8 +20,8 @@ class Extraction:
     output_tokens: int
 
 
-def make_client() -> AsyncAnthropic:
-    return AsyncAnthropic(max_retries=5)
+def make_client(max_retries: int) -> AsyncAnthropic:
+    return AsyncAnthropic(max_retries=max_retries)
 
 
 def parse_output(text: str) -> dict:
@@ -56,15 +55,16 @@ def parse_output(text: str) -> dict:
 
 
 class Extractor:
-    def __init__(self, client: AsyncAnthropic, model: str = MODEL):
+    def __init__(self, client: AsyncAnthropic, model: str, max_tokens: int):
         self.client = client
         self.model = model
+        self.max_tokens = max_tokens
 
-    async def extract(self, png_bytes: bytes, prompt: str) -> Extraction:
+    async def extract(self, png_bytes: bytes, prompt: Prompt) -> Extraction:
         image_b64 = base64.standard_b64encode(png_bytes).decode("ascii")
         response = await self.client.messages.create(
             model=self.model,
-            max_tokens=MAX_TOKENS,
+            max_tokens=self.max_tokens,
             messages=[{
                 "role": "user",
                 "content": [
@@ -76,7 +76,7 @@ class Extractor:
                             "data": image_b64,
                         },
                     },
-                    {"type": "text", "text": prompt},
+                    {"type": "text", "text": prompt.text},
                 ],
             }],
         )

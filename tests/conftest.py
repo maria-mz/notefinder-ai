@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-import db
+from notefinder import db
 
 
 TEST_DB_NAME = "notefinder_test"

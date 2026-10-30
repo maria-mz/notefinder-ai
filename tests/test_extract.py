@@ -6,7 +6,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from extract import BadOutputError, Extractor, parse_output
+from notefinder.extract import BadOutputError, Extractor, parse_output
+from notefinder.prompt import Prompt
 
 GOOD = {
     "transcript": "∀x P(x)",
@@ -15,7 +16,7 @@ GOOD = {
 }
 
 PNG = b"\x89PNG fake image bytes"
-PROMPT = "Transcribe this page."
+PROMPT = Prompt("Transcribe this page.")
 
 
 def text_block(text):
@@ -39,8 +40,8 @@ def make_client(content, **kwargs):
     return NS(messages=NS(create=AsyncMock(return_value=response)))
 
 
-def call(client, **kwargs):
-    extractor = Extractor(client, **kwargs)
+def call(client, model="test-model", max_tokens=1000):
+    extractor = Extractor(client, model, max_tokens)
     return asyncio.run(extractor.extract(PNG, PROMPT))
 
 
@@ -138,12 +139,12 @@ def test_extractor_propagates_bad_json():
 
 def test_extractor_sends_expected_message():
     client = make_client([text_block(json.dumps(GOOD))])
-    call(client, model="some-model")
+    call(client, model="some-model", max_tokens=1234)
 
     sent = client.messages.create.call_args.kwargs
 
     assert sent["model"] == "some-model"
-    assert sent["max_tokens"] > 0
+    assert sent["max_tokens"] == 1234
     assert sent["messages"] == [{
         "role": "user",
         "content": [
@@ -157,7 +158,7 @@ def test_extractor_sends_expected_message():
             },
             {
                 "type": "text",
-                "text": PROMPT,
+                "text": PROMPT.text,
             },
         ],
     }]
