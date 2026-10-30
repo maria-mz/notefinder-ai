@@ -78,7 +78,17 @@ def test_dry_run_shows_the_plan_and_changes_nothing(cli_db, tmp_path):
     assert result.exit_code == 0
     assert "2  (2 new)" in result.output
     assert "gone.pdf p.1" in result.output
+    assert "math.pdf  pp. 1-2  (new)" in result.output
     assert saved_pages(cli_db) == [("gone.pdf", 1)]
+
+
+@pytest.mark.parametrize(("page_nums", "expected"), [
+    ([3], "p. 3"),
+    ([1, 2, 3], "pp. 1-3"),
+    ([7, 1, 2, 3, 5], "pp. 1-3, 5, 7"),
+])
+def test_page_ranges_collapses_consecutive_pages(page_nums, expected):
+    assert cli.page_ranges(page_nums) == expected
 
 
 def test_sync_asks_before_deleting(cli_db, tmp_path):

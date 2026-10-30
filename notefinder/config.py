@@ -18,7 +18,7 @@ class AppConfig:
     api_max_retries: int = 5
     workers: int = 4
     prompt_path: Path = Path(__file__).parent / "prompt.txt"
-    claude_model: str = "claude-sonnet-5-5"
+    claude_model: str = "claude-haiku-5-5"
     dpi: int = 150
     embed_model: str = "BAAI/bge-base-en-v1.5"
 

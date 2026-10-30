@@ -64,11 +64,35 @@ def sync_params(app_config: AppConfig, num_workers: int) -> SyncParams:
     )
 
 
-def print_plan(plan: Plan, params: SyncParams) -> None:
+def page_ranges(page_nums: list[int]) -> str:
+    """Sorted page numbers with consecutive runs collapsed, e.g. [1, 2, 3, 7] -> 'pp. 1-3, 7'."""
+    runs: list[list[int]] = []
+    for n in sorted(page_nums):
+        if runs and n == runs[-1][1] + 1:
+            runs[-1][1] = n
+        else:
+            runs.append([n, n])
+    text = ", ".join(str(a) if a == b else f"{a}-{b}" for a, b in runs)
+    return ("p. " if len(page_nums) == 1 else "pp. ") + text
+
+
+def print_plan(plan: Plan, params: SyncParams, *, detailed: bool = False) -> None:
+    """Print what a sync would do.
+
+    :param detailed: Also list the files and pages of each extract and re-embed job.
+    """
     def line(action: str, jobs: list[Job]) -> None:
         reasons = Counter(job.reason for job in jobs).most_common()
         detail = ", ".join(f"{n} {reason}" for reason, n in reasons)
         typer.echo(f"  {action:<10} {len(jobs):>4}" + (f"  ({detail})" if detail else ""))
+
+        if not detailed:
+            return
+        groups: dict[tuple[str, str], list[int]] = {}
+        for job in jobs:
+            groups.setdefault((job.id.source_file, job.reason), []).append(job.id.page_num)
+        for (source_file, reason), page_nums in sorted(groups.items()):
+            typer.echo(f"    {source_file}  {page_ranges(page_nums)}  ({reason})")
 
     typer.echo(f"prompt {params.prompt.version}, {params.claude_model}, {params.embed_model}")
     line("extract", plan.extract)
@@ -107,7 +131,7 @@ def sync(
 
     with conn:
         plan = plan_sync(conn, target, params)
-        print_plan(plan, params)
+        print_plan(plan, params, detailed=dry_run)
 
         if dry_run or plan.is_empty():
             return
