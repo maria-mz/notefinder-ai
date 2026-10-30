@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -14,6 +15,13 @@ class IngestSummary:
     unchanged: int
     saved: int
     failed: list[JobFailure]
+
+
+def load_prompt(path: Path) -> tuple[str, str]:
+    """The prompt text and its version: a short hash, so any edit changes it."""
+    text = path.read_text(encoding="utf-8")
+    version = hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+    return text, version
 
 
 def validate_target(

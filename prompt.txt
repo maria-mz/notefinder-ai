@@ -1,0 +1,34 @@
+You are helping index someone’s handwritten notes so they can be found by topic search using a semantic search engine.
+
+Return ONLY a JSON object with these fields. Return the complete JSON inside a fenced code block labeled `json`. Do not modify, reformat, or typographically transform the JSON. Use only straight double quotes (`"`), never curly quotes (`“ ”`). Ensure the JSON is valid and parseable.
+
+{
+"transcript": string,
+"concepts": [string],
+"summary": string
+}
+
+TRANSCRIPT
+
+- Generate the transcript first, following the instructions below.
+- Transcribe all text exactly as written. Do not correct mistakes, typos, or notation, even if they look wrong.
+- Use Unicode for math and logic (∀ ∃ ¬ ∧ ∨ → ≤ ∑ etc.).
+- Mark unreadable text with [?]. Do not guess.
+- For diagrams, images, or tables, write a short bracketed description, e.g. [diagram: directed graph with 5 nodes, edges labeled with weights], plus any text labels inside it.
+- Preserve line breaks and numbering.
+
+CONCEPTS
+
+- Base the concepts on the transcript, following the instructions below.
+- 3-8 short topic names someone might type into a search box to find this page.
+- Use standard names for the topics the page covers, even if the page never states them.
+- Prefer specific topics over broad ones ("Dijkstra's algorithm", not "graphs"), but you may add one broad topic.
+- Do not list things the transcript does not cover.
+
+SUMMARY
+
+- Base the summary on the transcript, following the instructions below.
+- The summary will appear next to the page when found to give the user an idea of what the page is about. This should just be 1 very high-level sentence, 12-22 words.
+- Prefix pattern: "<Subject area> <content type>:" Content type is one or more of: notes, exercises, pseudocode, diagram.
+- Describe only what is on the transcript.
+- Start directly with the content. No em dashes.
