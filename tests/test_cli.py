@@ -91,6 +91,16 @@ def test_page_ranges_collapses_consecutive_pages(page_nums, expected):
     assert cli.page_ranges(page_nums) == expected
 
 
+@pytest.mark.parametrize(("seconds", "expected"), [
+    (4.519, "4.52s"),
+    (59.99, "59.99s"),
+    (60, "1m 0s"),
+    (192.4, "3m 12s"),
+])
+def test_format_duration(seconds, expected):
+    assert cli.format_duration(seconds) == expected
+
+
 def test_sync_asks_before_deleting(cli_db, tmp_path):
     save_test_page(cli_db, PageId("gone.pdf", 1))
 

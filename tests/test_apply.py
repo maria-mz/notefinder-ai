@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from dataclasses import replace
 
 import psycopg
@@ -186,3 +187,15 @@ def test_returns_one_result_per_job(conn, pdf):
 
     assert sorted((r.job.id.page_num, type(r)) for r in results) == [
         (1, Extracted), (2, Extracted), (3, Embedded)]
+
+
+def test_each_result_is_logged_with_its_progress(conn, pdf, caplog):
+    jobs = [extract_job(pdf, n) for n in range(1, 11)]
+
+    with caplog.at_level(logging.INFO, logger="notefinder.sync.apply"):
+        run(conn, MockExtractor(mock_extraction), MockEmbedder(), jobs)
+
+    lines = [record.getMessage() for record in caplog.records]
+    assert sorted(line.split(" extracted")[0] for line in lines) == sorted(
+        f"[{n:>2}/10]" for n in range(1, 11)
+    )

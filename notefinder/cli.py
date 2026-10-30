@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 import textwrap
+import time
 from collections import Counter
 from pathlib import Path
 from typing import Annotated
@@ -31,9 +32,9 @@ app = typer.Typer(no_args_is_help=True)
 @app.callback()
 def main() -> None:
     """Search handwritten notes by topic."""
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)  # logs every API request
-    logging.getLogger("sentence_transformers").setLevel(logging.WARNING)  # logs model loading
+    # only warnings from libraries (httpx2 logs every request at INFO), but info from us
+    logging.basicConfig(level=logging.WARNING, format="%(message)s")
+    logging.getLogger("notefinder").setLevel(logging.INFO)
 
 
 def fail(message: str, code: int = 1) -> typer.Exit:
@@ -74,6 +75,14 @@ def page_ranges(page_nums: list[int]) -> str:
             runs.append([n, n])
     text = ", ".join(str(a) if a == b else f"{a}-{b}" for a, b in runs)
     return ("p. " if len(page_nums) == 1 else "pp. ") + text
+
+
+def format_duration(seconds: float) -> str:
+    """E.g. '4.52s', or '3m 12s' from a minute up."""
+    if seconds < 60:
+        return f"{seconds:.2f}s"
+    minutes, seconds = divmod(round(seconds), 60)
+    return f"{minutes}m {seconds}s"
 
 
 def print_plan(plan: Plan, params: SyncParams, *, detailed: bool = False) -> None:
@@ -140,6 +149,8 @@ def sync(
         if plan.delete and not yes:
             typer.confirm(f"Delete {len(plan.delete)} pages from the database?", abort=True)
 
+        start = time.perf_counter()  # after the prompt, so waiting on it doesn't count
+
         extractor = (
             Extractor(
                 make_client(APP_CONFIG.api_max_retries),
@@ -162,8 +173,9 @@ def sync(
             embedder,
         )
 
+    elapsed = format_duration(time.perf_counter() - start)
     typer.echo(f"\n{summary.extracted} extracted, {summary.embedded} re-embedded, "
-               f"{summary.deleted} deleted, {len(summary.failed)} failed")
+               f"{summary.deleted} deleted, {len(summary.failed)} failed in {elapsed}")
     for failure in summary.failed:
         typer.echo(f"  {failure.job.id}: {failure.error}",
                    err=True)

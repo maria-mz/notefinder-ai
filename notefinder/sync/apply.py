@@ -131,20 +131,23 @@ def save(conn, result: Extracted | Embedded, params: SyncParams) -> None:
     )
 
 
-def log_result(result: JobResult) -> None:
+def log_result(result: JobResult, done: int, total: int) -> None:
     """Log one line for a result: a warning for a failure, info otherwise.
 
     :param result: The result to log.
+    :param done: How many jobs have finished, this one included.
+    :param total: How many jobs the sync has.
     """
     job = result.job
+    progress = f"[{done:>{len(str(total))}}/{total}]"
     if isinstance(result, JobFailure):
-        logger.warning("failed %s: %s", job.id, result.error)
+        logger.warning("%s failed %s: %s", progress, job.id, result.error)
     elif isinstance(result, Embedded):
-        logger.info("re-embedded %s", job.id)
+        logger.info("%s re-embedded %s", progress, job.id)
     else:
         e = result.extraction
-        logger.info("extracted %s (%d in / %d out tokens)",
-                    job.id, e.input_tokens, e.output_tokens)
+        logger.info("%s extracted %s (%d in / %d out tokens)",
+                    progress, job.id, e.input_tokens, e.output_tokens)
 
 
 async def run_worker(
@@ -153,7 +156,8 @@ async def run_worker(
     embedder,
     params: SyncParams,
     job_queue: asyncio.Queue[Job | None],
-    results: list[JobResult]
+    results: list[JobResult],
+    total: int,
 ) -> None:
     """Process jobs from the queue until it yields ``None``.
 
@@ -165,6 +169,7 @@ async def run_worker(
     :param params: Passed to :func:`process` and :func:`save`.
     :param job_queue: Jobs to process, then ``None`` to stop.
     :param results: Collects one result per job.
+    :param total: How many jobs there are in all, across every worker. For progress logging.
     :raises psycopg.Error: If saving a result fails.
     """
     while True:
@@ -177,8 +182,8 @@ async def run_worker(
         if not isinstance(result, JobFailure):
             save(conn, result, params)
 
-        log_result(result)
         results.append(result)
+        log_result(result, len(results), total)
 
 
 async def run_jobs(
@@ -210,7 +215,9 @@ async def run_jobs(
 
     async with asyncio.TaskGroup() as tg:
         for _ in range(num_workers):
-            tg.create_task(run_worker(conn, extractor, embedder, params, job_queue, results))
+            tg.create_task(
+                run_worker(conn, extractor, embedder, params, job_queue, results, len(jobs))
+            )
 
         for job in jobs:
             await job_queue.put(job)
