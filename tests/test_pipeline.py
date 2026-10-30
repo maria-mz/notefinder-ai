@@ -6,6 +6,7 @@ import pytest
 import db
 from extract import Extraction
 from pipeline import JobFailure, Job, JobSuccess, embedding_text, process, run_pipeline
+from tests.helpers import MockEmbedder, MockExtractor, mock_vector
 
 SOURCE_FILE = "lecture.pdf"
 PROMPT = "Transcribe this page."
@@ -21,31 +22,6 @@ def mock_extraction(png_bytes: bytes) -> Extraction:
         input_tokens=100,
         output_tokens=50,
     )
-
-
-def mock_vector(text: str) -> list[float]:
-    """A deterministic 768-number 'embedding'."""
-    return [(sum(map(ord, text)) % 997) / 1000] * 768
-
-
-class MockExtractor:
-    def __init__(self, fail: bool = False):
-        self.fail = fail
-
-    async def extract(self, png_bytes: bytes, prompt: str) -> Extraction:
-        if self.fail:
-            raise RuntimeError("API down")
-        return mock_extraction(png_bytes)
-
-
-class MockEmbedder:
-    def __init__(self, fail: bool = False):
-        self.fail = fail
-
-    def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        if self.fail:
-            raise RuntimeError("embedding failed")
-        return [mock_vector(text) for text in texts]
 
 
 def make_job(page_num: int) -> Job:
@@ -79,7 +55,7 @@ def test_process_succeeds_with_the_extraction_and_embedding():
     job = make_job(1)
     expected_extraction = mock_extraction(job.png_bytes)
 
-    result = run_process(MockExtractor(), MockEmbedder(), job)
+    result = run_process(MockExtractor(mock_extraction), MockEmbedder(), job)
     e = result.extraction
 
     assert isinstance(result, JobSuccess)
@@ -110,7 +86,7 @@ def test_process_fails_when_embedding_fails():
 ])
 def test_every_job_is_saved_with_its_own_results(conn, num_jobs, num_workers):
     jobs = [make_job(n) for n in range(1, num_jobs + 1)]
-    run(conn, MockExtractor(), MockEmbedder(), jobs, num_workers)
+    run(conn, MockExtractor(mock_extraction), MockEmbedder(), jobs, num_workers)
 
     assert saved_page_nums(conn) == list(range(1, num_jobs + 1))
     for job in jobs:
@@ -154,3 +130,11 @@ def test_database_error_propagates_from_worker(conn):
 def test_zero_workers_is_rejected(conn):
     with pytest.raises(AssertionError):
         run(conn, MockExtractor(), MockEmbedder(), [make_job(1)], num_workers=0)
+
+
+def test_returns_one_result_per_job(conn):
+    jobs = [make_job(n) for n in range(1, 4)]
+    results = run(conn, MockExtractor(), MockEmbedder(), jobs)
+
+    assert sorted(r.job.page_num for r in results) == [1, 2, 3]
+    assert all(isinstance(r, JobSuccess) for r in results)

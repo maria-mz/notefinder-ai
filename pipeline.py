@@ -64,7 +64,7 @@ def log_result(result: JobResult) -> None:
 
 
 async def run_worker(conn, extractor: Extractor, embedder, prompt: str, prompt_version: str,
-                     job_queue: asyncio.Queue[Job | None]) -> None:
+                     job_queue: asyncio.Queue[Job | None], results: list[JobResult]) -> None:
     while True:
         job = await job_queue.get()
         if job is None:
@@ -80,17 +80,20 @@ async def run_worker(conn, extractor: Extractor, embedder, prompt: str, prompt_v
                 embedding=result.embedding,
             )
         log_result(result)
+        results.append(result)
 
 
 async def run_pipeline(conn, extractor: Extractor, embedder, jobs: list[Job], *, prompt: str,
-                       prompt_version: str, num_workers: int = DEFAULT_WORKERS) -> None:
+                       prompt_version: str, num_workers: int = DEFAULT_WORKERS) -> list[JobResult]:
+    """Process every job. Returns one result per job, in completion order."""
     assert num_workers >= 1
     job_queue: asyncio.Queue[Job | None] = asyncio.Queue(maxsize=num_workers)
+    results: list[JobResult] = []
 
     async with asyncio.TaskGroup() as tg:
         for _ in range(num_workers):
             tg.create_task(
-                run_worker(conn, extractor, embedder, prompt, prompt_version, job_queue)
+                run_worker(conn, extractor, embedder, prompt, prompt_version, job_queue, results)
             )
 
         for job in jobs:
@@ -99,3 +102,5 @@ async def run_pipeline(conn, extractor: Extractor, embedder, jobs: list[Job], *,
         for _ in range(num_workers):
             await job_queue.put(None)
     # leaving the block waits for every worker to finish
+
+    return results
