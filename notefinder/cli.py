@@ -1,6 +1,7 @@
-"""The command line: ``sync``, ``search``, and ``eval``."""
+"""The command line: ``sync``, ``search``, ``shell``, and ``eval``."""
 import logging
 import os
+import readline  # adds arrow keys and history to input(), for `shell`
 import shutil
 import textwrap
 import time
@@ -225,8 +226,14 @@ def sync(
 def print_search_results(results: list[db.SearchResult]) -> None:
     """Print each result's rank, score, and page, then its summary, shortened.
 
-    :param results: The results, best first.
+    :param results: The results, best first. If empty, says to sync.
     """
+    if not results:
+        typer.echo(
+            f"No pages embedded with {APP_CONFIG.embed_model} yet. Run `sync` first."
+        )
+        return
+
     width = min(shutil.get_terminal_size().columns, 100)
 
     def indented(text: str) -> str:
@@ -255,13 +262,45 @@ def search(
         embedder = Embedder(APP_CONFIG.embed_model, APP_CONFIG.query_prefix)
         results = run_search(conn, embedder, query, k)
 
-    if not results:
-        typer.echo(
-            f"No pages embedded with {APP_CONFIG.embed_model} yet. Run `sync` first."
-        )
-        return
-
     print_search_results(results)
+
+
+@app.command()
+def shell(
+    k: Annotated[int, typer.Option(
+        "-k", min=1, help="How many pages to show.",
+    )] = APP_CONFIG.search_k,
+) -> None:
+    """Search topic after topic, loading the embedding model only once."""
+    conn = connect()
+    try:
+        typer.echo(f"loading {APP_CONFIG.embed_model}...")
+        start = time.perf_counter()
+        embedder = Embedder(APP_CONFIG.embed_model, APP_CONFIG.query_prefix)
+        embedder.embed_query("warm up")  # the first query is slow; get it out of the way
+        typer.echo(f"ready in {format_duration(time.perf_counter() - start)}. "
+                   "Type a topic to search, or Ctrl-D to quit.")
+
+        while True:
+            try:
+                query = input("search> ").strip()
+                if not query:
+                    continue
+                try:
+                    results = run_search(conn, embedder, query, k)
+                except psycopg.OperationalError:
+                    # e.g. the database restarted while the shell was open
+                    conn.close()
+                    conn = connect()
+                    results = run_search(conn, embedder, query, k)
+                print_search_results(results)
+            except KeyboardInterrupt:  # drops the current line, like other shells
+                typer.echo()
+            except EOFError:  # Ctrl-D
+                typer.echo()
+                return
+    finally:
+        conn.close()
 
 
 def make_rank(

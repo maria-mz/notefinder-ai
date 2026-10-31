@@ -1,6 +1,7 @@
 import json
 from dataclasses import replace
 
+import psycopg
 import pytest
 from typer.testing import CliRunner
 
@@ -14,7 +15,7 @@ from notefinder.render import hash_image, render_page
 from notefinder.sync.apply import JobFailure, SyncSummary
 from notefinder.sync.plan import ExtractJob, ExtractReason, SyncParams, embedding_text
 from tests.helpers import (
-    PARAMS, MockEmbedder, make_pdf, save_test_page, saved_pages,
+    PARAMS, MockEmbedder, axis_vector, make_pdf, save_test_page, saved_pages,
 )
 
 runner = CliRunner()
@@ -54,6 +55,11 @@ def run_sync_command(notes_dir, *args, input=None):
 def run_eval_command(notes_dir, labels, *args):
     return runner.invoke(cli.app, ["eval", "--notes-dir", str(notes_dir),
                                    "--labels", str(labels), *args])
+
+
+def run_shell_command(*queries):
+    """Run the shell, typing each query on its own line, then quitting with Ctrl-D."""
+    return runner.invoke(cli.app, ["shell"], input="".join(q + "\n" for q in queries))
 
 
 def save_notes(conn, notes_dir, *pages: dict) -> None:
@@ -167,6 +173,35 @@ def test_search_says_to_sync_when_nothing_is_embedded(cli_db, monkeypatch):
                         MockEmbedder(model_name=model_name))
 
     result = runner.invoke(cli.app, ["search", "heaps"])
+
+    assert result.exit_code == 0, result.output
+    assert "Run `sync` first" in result.output
+
+
+@pytest.fixture
+def shell_embedder(cli_db, monkeypatch):
+    """Has the shell embed every query as axis_vector(1, 0). Returns each model load."""
+    loads = []
+    def load(model_name, query_prefix):
+        loads.append(model_name)
+        return MockEmbedder(lambda query: axis_vector(1, 0), model_name=model_name)
+    monkeypatch.setattr(cli, "Embedder", load)
+    return loads
+
+
+def test_shell_searches_each_query_and_loads_the_model_once(cli_db, shell_embedder):
+    save_test_page(cli_db, PageId("heaps.pdf", 1),
+                   embed_model=cli.APP_CONFIG.embed_model, embedding=axis_vector(1, 0))
+
+    result = run_shell_command("heaps", "", "tries")
+
+    assert result.exit_code == 0, result.output
+    assert result.output.count("1. 1.000  heaps.pdf p.1") == 2
+    assert len(shell_embedder) == 1
+
+
+def test_shell_says_to_sync_when_nothing_is_embedded(shell_embedder):
+    result = run_shell_command("heaps")
 
     assert result.exit_code == 0, result.output
     assert "Run `sync` first" in result.output
