@@ -1,4 +1,13 @@
+"""Embedding pages and queries with a local sentence-transformers model."""
+
+
 class Embedder:
+    """Embeds pages and queries into the same vector space.
+
+    :ivar model_name: The sentence-transformers model, e.g. ``"BAAI/bge-base-en-v1.5"``.
+    :ivar model: The loaded model.
+    :ivar query_prefix: Prepended to queries. ``""`` for none.
+    """
     def __init__(self, model_name: str, query_prefix: str):
         # sentence-transformers takes seconds to import; importing it here keeps
         # importing this module cheap
@@ -14,11 +23,19 @@ class Embedder:
         self.query_prefix = query_prefix
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        """Embed pages for storage."""
+        """Embed page texts for storage.
+
+        :param texts: The texts to embed.
+        :returns: One unit-length vector per text, in order.
+        """
         return self._encode(texts)
 
     def embed_query(self, query: str) -> list[float]:
-        """Embed a search query, after the query prefix ('' for none)."""
+        """Embed a search query, after prepending ``query_prefix``.
+
+        :param query: The search text.
+        :returns: A unit-length vector.
+        """
         return self._encode([self.query_prefix + query])[0]
 
     def _encode(self, texts: list[str]) -> list[list[float]]:

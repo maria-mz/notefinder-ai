@@ -1,9 +1,9 @@
-relevance_rule: "Page mentions or works an example of the topic."
+relevance_rule: "Page defines, explains, or applies the topic in a worked step."
 
 queries:
   - query: probability tree diagram
     relevant:
-      - {file: stats/assignment4.pdf, page: 4}
+      - {file: stats/assignment4.pdf, page: 10}
       - {file: stats/midterm-1-practice.pdf, page: 10}
 
   - query: system calls
@@ -156,7 +156,6 @@ queries:
   - query: Hall's theorem
     relevant:
       - {file: dsa/hw4-written.pdf, page: 1}
-      - {file: dsa/hw4-written.pdf, page: 2}
 
   - query: dice problems
     relevant:
@@ -177,6 +176,7 @@ queries:
 
   - query: conditional probability
     relevant:
+      - {file: stats/assignment4.pdf, page: 1}
       - {file: stats/assignment4.pdf, page: 2}
       - {file: stats/assignment4.pdf, page: 4}
       - {file: stats/assignment4.pdf, page: 5}

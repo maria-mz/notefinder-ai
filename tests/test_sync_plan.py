@@ -2,13 +2,15 @@ from pathlib import Path
 
 import pytest
 
-from notefinder.db import PageId, PageState
-from notefinder.prompt import Prompt
-from notefinder.sync.plan import (EmbedJob, EmbedReason, ExtractJob, ExtractReason, SyncParams,
-                                  LocalPage, embedding_text, in_scope, make_plan)
+from notefinder import db
+from notefinder.db import PageId, StoredPage
+from notefinder.render import hash_image, render_page
+from notefinder.sync.plan import (EmbedJob, EmbedReason, ExtractJob, ExtractReason,
+                                  LocalPage, embedding_text, in_scope, make_plan,
+                                  plan_sync, scan)
+from notefinder.sync.target import Target
+from tests.helpers import PARAMS, make_pdf
 
-PARAMS = SyncParams(prompt=Prompt("Transcribe this page."), claude_model="claude-new",
-                    embed_model="embed-new", dpi=72, num_workers=1)
 SOURCE_FILE = "lecture.pdf"
 PAGE_ID = PageId(SOURCE_FILE, 1)
 PDF = Path("/notes/lecture.pdf")
@@ -18,7 +20,7 @@ def local(page_num: int = 1, source_file: str = SOURCE_FILE) -> LocalPage:
     return LocalPage(PageId(source_file, page_num), "hash", PDF)
 
 
-def stored(page_num: int = 1, source_file: str = SOURCE_FILE, **overrides) -> PageState:
+def stored(page_num: int = 1, source_file: str = SOURCE_FILE, **overrides) -> StoredPage:
     """A stored page in sync with local() and PARAMS, unless overridden."""
     fields = {
         "content_hash": "hash",
@@ -29,7 +31,7 @@ def stored(page_num: int = 1, source_file: str = SOURCE_FILE, **overrides) -> Pa
         "summary": "Summary.",
         "concepts": ["Concept"],
     } | overrides
-    return PageState(PageId(source_file, page_num), **fields)
+    return StoredPage(PageId(source_file, page_num), **fields)
 
 
 def test_embedding_text_format():
@@ -98,7 +100,8 @@ def test_a_page_change_is_reported_over_config_changes():
 def test_jobs_lists_extract_jobs_then_embed_jobs():
     plan = make_plan([local(1), local(2)], [stored(1, embed_model="embed-old")], PARAMS)
 
-    assert [(type(job), job.id.page_num) for job in plan.jobs] == [(ExtractJob, 2), (EmbedJob, 1)]
+    jobs = [(type(job), job.id.page_num) for job in plan.jobs]
+    assert jobs == [(ExtractJob, 2), (EmbedJob, 1)]
 
 
 def test_stored_pages_that_are_gone_are_deleted_in_order():
@@ -106,7 +109,9 @@ def test_stored_pages_that_are_gone_are_deleted_in_order():
 
     plan = make_plan([local(1)], pages, PARAMS)
 
-    assert plan.delete == [PageId(SOURCE_FILE, 3), PageId(SOURCE_FILE, 4), PageId("old.pdf", 1)]
+    assert plan.delete == [
+        PageId(SOURCE_FILE, 3), PageId(SOURCE_FILE, 4), PageId("old.pdf", 1),
+    ]
     assert plan.unchanged == 1
 
 
@@ -137,3 +142,24 @@ def test_syncing_a_pdf_deletes_only_its_pages():
 ])
 def test_in_scope(source_file, scope, expected):
     assert in_scope(source_file, scope) is expected
+
+
+def test_scan_hashes_every_page_under_the_target(tmp_path):
+    make_pdf(tmp_path / "math.pdf", ["limits"])
+    pdf = make_pdf(tmp_path / "os" / "lecture1.pdf", ["processes", "threads"])
+
+    pages = scan(Target(tmp_path, tmp_path / "os"), PARAMS.dpi)
+
+    assert [(p.id, p.pdf_path) for p in pages] == [
+        (PageId("os/lecture1.pdf", 1), pdf), (PageId("os/lecture1.pdf", 2), pdf)]
+    assert [p.content_hash for p in pages] == [
+        hash_image(render_page(pdf, n, PARAMS.dpi)) for n in (1, 2)]
+
+
+def test_planning_changes_nothing(conn, tmp_path):
+    make_pdf(tmp_path / "math.pdf", ["limits", "derivatives"])
+
+    plan = plan_sync(conn, Target.resolve(tmp_path), PARAMS)
+
+    assert len(plan.extract) == 2
+    assert db.get_stored_pages(conn) == []

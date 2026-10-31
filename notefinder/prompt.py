@@ -22,8 +22,5 @@ class Prompt:
 
     @property
     def version(self) -> str:
-        """A short SHA-256 of the text, so any edit changes it.
-
-        Stored with each page to tell which prompt extracted it.
-        """
+        """A short SHA-256 of the text."""
         return hashlib.sha256(self.text.encode("utf-8")).hexdigest()[:12]

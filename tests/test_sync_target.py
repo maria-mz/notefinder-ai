@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from notefinder.sync.target import Target
@@ -12,7 +14,7 @@ def test_resolve_makes_paths_absolute(tmp_path, monkeypatch):
     make_pdf(tmp_path / "notes" / "os" / "a.pdf", ["x"])
     monkeypatch.chdir(tmp_path)
 
-    target = Target.resolve(tmp_path / "notes" / ".." / "notes", tmp_path / "notes" / "os")
+    target = Target.resolve(Path("notes/../notes"), Path("notes/os"))
 
     assert target == Target(tmp_path / "notes", tmp_path / "notes" / "os")
 

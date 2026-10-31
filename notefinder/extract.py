@@ -1,3 +1,4 @@
+"""Reading a page image with Claude: its transcript, concepts, and summary."""
 import base64
 import json
 from dataclasses import dataclass
@@ -13,6 +14,14 @@ class BadOutputError(Exception):
 
 @dataclass
 class Extraction:
+    """What Claude read from one page.
+
+    :ivar transcript: The page's text, transcribed.
+    :ivar concepts: The topics the page covers.
+    :ivar summary: A short summary of the page.
+    :ivar input_tokens: Tokens Claude read, for cost tracking.
+    :ivar output_tokens: Tokens Claude wrote, for cost tracking.
+    """
     transcript: str
     concepts: list[str]
     summary: str
@@ -35,10 +44,21 @@ OUTPUT_SCHEMA = {
 
 
 def make_client(max_retries: int) -> AsyncAnthropic:
+    """Create an Anthropic client. The API key comes from ``ANTHROPIC_API_KEY``.
+
+    :param max_retries: How many times the client retries a failed request.
+    :returns: The client.
+    """
     return AsyncAnthropic(max_retries=max_retries)
 
 
 def parse_output(text: str) -> dict:
+    """Parse Claude's reply and check what :data:`OUTPUT_SCHEMA` can't.
+
+    :param text: The reply's text, expected to match :data:`OUTPUT_SCHEMA`.
+    :returns: The parsed reply.
+    :raises BadOutputError: If ``text`` isn't JSON, or a field is empty.
+    """
     try:
         data = json.loads(text)
     except json.JSONDecodeError as e:
@@ -57,12 +77,26 @@ def parse_output(text: str) -> dict:
 
 
 class Extractor:
+    """Reads page images with Claude.
+
+    :ivar client: The Anthropic client.
+    :ivar model: The Claude model to use.
+    :ivar max_tokens: The most tokens Claude may write per page.
+    """
     def __init__(self, client: AsyncAnthropic, model: str, max_tokens: int):
         self.client = client
         self.model = model
         self.max_tokens = max_tokens
 
     async def extract(self, png_bytes: bytes, prompt: Prompt) -> Extraction:
+        """Read one page image.
+
+        :param png_bytes: The page, rendered to PNG.
+        :param prompt: The instructions to send with the image.
+        :returns: What Claude read.
+        :raises BadOutputError: If Claude stops early or its reply is unusable.
+        :raises anthropic.APIError: If the request fails after the client's retries.
+        """
         image_b64 = base64.standard_b64encode(png_bytes).decode("ascii")
         response = await self.client.messages.create(
             model=self.model,

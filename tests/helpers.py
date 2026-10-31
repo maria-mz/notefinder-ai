@@ -29,7 +29,11 @@ def constant_extraction(png_bytes: bytes) -> Extraction:
 
 
 def mock_vector(text: str) -> list[float]:
-    """A deterministic 768-number 'embedding'."""
+    """A deterministic 768-number 'embedding' that differs between texts.
+
+    All 768 values are the same, so cosine similarity can't tell two of these apart:
+    use axis_vector for tests that rank.
+    """
     return [(sum(map(ord, text)) % 997) / 1000] * 768
 
 
@@ -46,6 +50,13 @@ def make_pdf(path: Path, page_texts: list[str]) -> Path:
             doc.new_page().insert_text((72, 72), text)
         doc.save(path)
     return path
+
+
+def saved_pages(conn) -> list[tuple[str, int]]:
+    """The stored pages' files and page numbers, in order."""
+    return conn.execute(
+        "SELECT source_file, page_num FROM pages ORDER BY source_file, page_num"
+    ).fetchall()
 
 
 def save_test_page(conn, page_id: PageId = PageId("lecture.pdf", 1), **overrides) -> None:

@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 
 from notefinder import db
-from notefinder.embeddings import Embedder
+from notefinder.embed import Embedder
 from notefinder.extract import Extraction, Extractor
 from notefinder.render import hash_image, render_page
 from notefinder.sync.plan import EmbedJob, ExtractJob, Job, Plan, SyncParams, embedding_text

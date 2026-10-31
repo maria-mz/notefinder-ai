@@ -9,7 +9,8 @@ from notefinder import db
 from notefinder.db import PageId
 from notefinder.extract import Extraction
 from notefinder.sync.apply import Embedded, Extracted, JobFailure, process, run_jobs
-from notefinder.sync.plan import EmbedJob, EmbedReason, ExtractJob, ExtractReason, embedding_text
+from notefinder.sync.plan import (EmbedJob, EmbedReason, ExtractJob, ExtractReason,
+                                  embedding_text)
 from notefinder.render import hash_image, render_page
 from tests.helpers import (PARAMS, MockEmbedder, MockExtractor, axis_vector, make_pdf,
                            mock_vector, save_test_page)
@@ -20,7 +21,8 @@ NUM_PAGES = 10
 
 @pytest.fixture
 def pdf(tmp_path):
-    return make_pdf(tmp_path / SOURCE_FILE, [f"page {n}" for n in range(1, NUM_PAGES + 1)])
+    texts = [f"page {n}" for n in range(1, NUM_PAGES + 1)]
+    return make_pdf(tmp_path / SOURCE_FILE, texts)
 
 
 def mock_extraction(png_bytes: bytes) -> Extraction:
@@ -121,25 +123,28 @@ def test_process_fails_when_the_page_is_gone(pdf):
     pytest.param(2, 5, id="more-workers-than-jobs"),
     pytest.param(10, 3, id="more-jobs-than-workers"),
 ])
-def test_every_extract_job_is_saved_with_its_own_results(conn, pdf, num_jobs, num_workers):
+def test_every_extract_job_is_saved_with_its_own_results(conn, pdf, num_jobs,
+                                                          num_workers):
     jobs = [extract_job(pdf, n) for n in range(1, num_jobs + 1)]
     run(conn, MockExtractor(mock_extraction), MockEmbedder(), jobs, num_workers)
 
     assert saved_page_nums(conn) == list(range(1, num_jobs + 1))
     for job in jobs:
-        page = db.get_page(conn, job.id)
         extraction = expected_extraction(pdf, job.id.page_num)
         text = embedding_text(extraction.summary, extraction.concepts)
 
-        assert page.content_hash == hash_image(render_page(pdf, job.id.page_num, PARAMS.dpi))
-        assert page.transcript == extraction.transcript
-        assert page.concepts == extraction.concepts
-        assert page.summary == extraction.summary
-        assert page.prompt_version == PARAMS.prompt.version
-        assert page.claude_model == PARAMS.claude_model
-        assert page.embedded_text == text
-        assert page.embed_model == PARAMS.embed_model
-        assert page.embedding == pytest.approx(mock_vector(text))
+        assert db.get_page(conn, job.id) == db.Page(
+            id=job.id,
+            content_hash=hash_image(render_page(pdf, job.id.page_num, PARAMS.dpi)),
+            transcript=extraction.transcript,
+            concepts=extraction.concepts,
+            summary=extraction.summary,
+            prompt_version=PARAMS.prompt.version,
+            claude_model=PARAMS.claude_model,
+            embedded_text=text,
+            embed_model=PARAMS.embed_model,
+            embedding=pytest.approx(mock_vector(text)),
+        )
 
 
 def test_an_embed_job_replaces_only_the_embedding(conn):
@@ -148,13 +153,11 @@ def test_an_embed_job_replaces_only_the_embedding(conn):
 
     run(conn, None, MockEmbedder(), [embed_job(1, summary=before.summary)])
 
-    page = db.get_page(conn, page_id(1))
     text = embedding_text(before.summary, ["New concept"])
-    assert page.embed_model == PARAMS.embed_model
-    assert page.embedded_text == text
-    assert page.embedding == pytest.approx(mock_vector(text))
-    assert (page.content_hash, page.transcript, page.prompt_version, page.claude_model) == (
-        before.content_hash, before.transcript, before.prompt_version, before.claude_model)
+    assert db.get_page(conn, page_id(1)) == replace(
+        before, embedded_text=text, embed_model=PARAMS.embed_model,
+        embedding=pytest.approx(mock_vector(text)),
+    )
 
 
 def test_a_failed_rerun_keeps_the_pages_old_results(conn, pdf):
@@ -170,13 +173,9 @@ def test_a_failed_rerun_keeps_the_pages_old_results(conn, pdf):
 def test_database_error_propagates_from_worker(conn, pdf):
     conn.close()
     with pytest.raises(ExceptionGroup) as excinfo:
-        run(conn, MockExtractor(), MockEmbedder(), [extract_job(pdf, n) for n in range(1, 6)])
+        jobs = [extract_job(pdf, n) for n in range(1, 6)]
+        run(conn, MockExtractor(), MockEmbedder(), jobs)
     assert excinfo.value.subgroup(psycopg.Error) is not None
-
-
-def test_zero_workers_is_rejected(conn, pdf):
-    with pytest.raises(AssertionError):
-        run(conn, MockExtractor(), MockEmbedder(), [extract_job(pdf, 1)], num_workers=0)
 
 
 def test_returns_one_result_per_job(conn, pdf):

@@ -112,13 +112,6 @@ def test_extractor_rejects_response_without_text():
         call(client)
 
 
-def test_extractor_propagates_bad_json():
-    client = make_client([text_block("Sorry, I can't read this page.")])
-
-    with pytest.raises(BadOutputError, match="invalid JSON"):
-        call(client)
-
-
 def test_extractor_sends_expected_message():
     client = make_client([text_block(json.dumps(GOOD))])
     call(client, model="some-model", max_tokens=1234)

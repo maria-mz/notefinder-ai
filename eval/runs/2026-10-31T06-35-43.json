@@ -1,0 +1,658 @@
+{
+  "timestamp": "2026-10-31T06:35:43+00:00",
+  "retriever": "bm25",
+  "prompt_version": "1d57c6e79c30",
+  "claude_model": "claude-sonnet-5-5",
+  "embed_model": "BAAI/bge-base-en-v1.5",
+  "k": 5,
+  "num_pages": 87,
+  "num_queries": 30,
+  "mean_recall": 0.6577777777777778,
+  "queries": [
+    {
+      "query": "probability tree diagram",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 10,
+          "rank": 1
+        },
+        {
+          "file": "stats/midterm-1-practice.pdf",
+          "page": 10,
+          "rank": 2
+        }
+      ]
+    },
+    {
+      "query": "system calls",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "os/osc-2-4.pdf",
+          "page": 1,
+          "rank": 3
+        },
+        {
+          "file": "os/osc-2-4.pdf",
+          "page": 2,
+          "rank": 1
+        }
+      ]
+    },
+    {
+      "query": "Dijkstra's algorithm",
+      "recall": 0.0,
+      "relevant": [
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 6,
+          "rank": 16
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 7,
+          "rank": 14
+        }
+      ]
+    },
+    {
+      "query": "minimum spanning trees",
+      "recall": 0.8,
+      "relevant": [
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 7,
+          "rank": 2
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 8,
+          "rank": 1
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 9,
+          "rank": 4
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 10,
+          "rank": null
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 11,
+          "rank": 5
+        }
+      ]
+    },
+    {
+      "query": "MSTs",
+      "recall": 0.2,
+      "relevant": [
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 7,
+          "rank": 1
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 8,
+          "rank": null
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 9,
+          "rank": null
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 10,
+          "rank": null
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 11,
+          "rank": null
+        }
+      ]
+    },
+    {
+      "query": "np-completeness",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 1,
+          "rank": 1
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 15,
+          "rank": 2
+        }
+      ]
+    },
+    {
+      "query": "big-O",
+      "recall": 0.5,
+      "relevant": [
+        {
+          "file": "dsa/hw1-q1.pdf",
+          "page": 1,
+          "rank": 1
+        },
+        {
+          "file": "dsa/hw1-q1.pdf",
+          "page": 5,
+          "rank": null
+        }
+      ]
+    },
+    {
+      "query": "stable matching problem",
+      "recall": 0.6,
+      "relevant": [
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 1,
+          "rank": 1
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 2,
+          "rank": 2
+        },
+        {
+          "file": "dsa/hw1-q1.pdf",
+          "page": 1,
+          "rank": null
+        },
+        {
+          "file": "dsa/hw1-q1.pdf",
+          "page": 2,
+          "rank": null
+        },
+        {
+          "file": "dsa/hw1-q1.pdf",
+          "page": 5,
+          "rank": 3
+        }
+      ]
+    },
+    {
+      "query": "stable marriage problem",
+      "recall": 0.6,
+      "relevant": [
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 1,
+          "rank": 1
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 2,
+          "rank": 3
+        },
+        {
+          "file": "dsa/hw1-q1.pdf",
+          "page": 1,
+          "rank": null
+        },
+        {
+          "file": "dsa/hw1-q1.pdf",
+          "page": 2,
+          "rank": null
+        },
+        {
+          "file": "dsa/hw1-q1.pdf",
+          "page": 5,
+          "rank": 4
+        }
+      ]
+    },
+    {
+      "query": "topological sort",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 4,
+          "rank": 1
+        },
+        {
+          "file": "dsa/hw1-q1.pdf",
+          "page": 4,
+          "rank": 4
+        }
+      ]
+    },
+    {
+      "query": "expected value",
+      "recall": 0.0,
+      "relevant": [
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 5,
+          "rank": null
+        },
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 6,
+          "rank": null
+        },
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 7,
+          "rank": null
+        },
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 8,
+          "rank": null
+        }
+      ]
+    },
+    {
+      "query": "De Morgan's law",
+      "recall": 0.4,
+      "relevant": [
+        {
+          "file": "discrete-math/hw-1.pdf",
+          "page": 3,
+          "rank": 2
+        },
+        {
+          "file": "discrete-math/hw-3.pdf",
+          "page": 3,
+          "rank": null
+        },
+        {
+          "file": "discrete-math/hw-5.pdf",
+          "page": 2,
+          "rank": null
+        },
+        {
+          "file": "discrete-math/hw-5.pdf",
+          "page": 3,
+          "rank": 1
+        },
+        {
+          "file": "discrete-math/hw-5.pdf",
+          "page": 6,
+          "rank": null
+        },
+        {
+          "file": "stats/midterm-1-practice.pdf",
+          "page": 2,
+          "rank": null
+        },
+        {
+          "file": "stats/midterm-1-practice.pdf",
+          "page": 3,
+          "rank": 26
+        }
+      ]
+    },
+    {
+      "query": "binomial probability",
+      "recall": 0.6666666666666666,
+      "relevant": [
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 1,
+          "rank": 4
+        },
+        {
+          "file": "stats/midterm-1-practice.pdf",
+          "page": 11,
+          "rank": null
+        },
+        {
+          "file": "stats/midterm-1-practice.pdf",
+          "page": 12,
+          "rank": 2
+        }
+      ]
+    },
+    {
+      "query": "truth tables",
+      "recall": 0.6,
+      "relevant": [
+        {
+          "file": "discrete-math/hw-1.pdf",
+          "page": 1,
+          "rank": 9
+        },
+        {
+          "file": "discrete-math/hw-1.pdf",
+          "page": 2,
+          "rank": 10
+        },
+        {
+          "file": "discrete-math/hw-1.pdf",
+          "page": 3,
+          "rank": 3
+        },
+        {
+          "file": "discrete-math/hw-1.pdf",
+          "page": 4,
+          "rank": 2
+        },
+        {
+          "file": "discrete-math/hw-1.pdf",
+          "page": 5,
+          "rank": 1
+        },
+        {
+          "file": "discrete-math/hw-1.pdf",
+          "page": 6,
+          "rank": 6
+        }
+      ]
+    },
+    {
+      "query": "hasse diagrams",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "discrete-math/hw-6.pdf",
+          "page": 5,
+          "rank": 2
+        },
+        {
+          "file": "discrete-math/hw-6.pdf",
+          "page": 6,
+          "rank": 1
+        }
+      ]
+    },
+    {
+      "query": "poset diagrams",
+      "recall": 0.5,
+      "relevant": [
+        {
+          "file": "discrete-math/hw-6.pdf",
+          "page": 5,
+          "rank": 8
+        },
+        {
+          "file": "discrete-math/hw-6.pdf",
+          "page": 6,
+          "rank": 5
+        }
+      ]
+    },
+    {
+      "query": "operating system structures",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "os/osc-2-4.pdf",
+          "page": 3,
+          "rank": 5
+        }
+      ]
+    },
+    {
+      "query": "client-server",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "os/osc-1.1-1.12.pdf",
+          "page": 7,
+          "rank": 1
+        }
+      ]
+    },
+    {
+      "query": "dynamic programming",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 14,
+          "rank": 1
+        }
+      ]
+    },
+    {
+      "query": "DP",
+      "recall": 0.0,
+      "relevant": [
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 14,
+          "rank": null
+        }
+      ]
+    },
+    {
+      "query": "PMF table",
+      "recall": 0.6666666666666666,
+      "relevant": [
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 1,
+          "rank": 1
+        },
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 2,
+          "rank": 3
+        },
+        {
+          "file": "stats/midterm-1-practice.pdf",
+          "page": 10,
+          "rank": null
+        }
+      ]
+    },
+    {
+      "query": "CDF table",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 1,
+          "rank": 1
+        }
+      ]
+    },
+    {
+      "query": "Venn diagrams",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "discrete-math/hw-5.pdf",
+          "page": 3,
+          "rank": 2
+        },
+        {
+          "file": "discrete-math/hw-5.pdf",
+          "page": 4,
+          "rank": 3
+        },
+        {
+          "file": "stats/midterm-1-practice.pdf",
+          "page": 2,
+          "rank": 1
+        },
+        {
+          "file": "stats/midterm-1-practice.pdf",
+          "page": 4,
+          "rank": 4
+        }
+      ]
+    },
+    {
+      "query": "knights and knaves",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "discrete-math/hw-1.pdf",
+          "page": 1,
+          "rank": 1
+        },
+        {
+          "file": "discrete-math/hw-1.pdf",
+          "page": 2,
+          "rank": 2
+        }
+      ]
+    },
+    {
+      "query": "mathematical relations",
+      "recall": 0.8,
+      "relevant": [
+        {
+          "file": "discrete-math/hw-6.pdf",
+          "page": 1,
+          "rank": 1
+        },
+        {
+          "file": "discrete-math/hw-6.pdf",
+          "page": 2,
+          "rank": 2
+        },
+        {
+          "file": "discrete-math/hw-6.pdf",
+          "page": 3,
+          "rank": 4
+        },
+        {
+          "file": "discrete-math/hw-6.pdf",
+          "page": 4,
+          "rank": 6
+        },
+        {
+          "file": "discrete-math/hw-6.pdf",
+          "page": 5,
+          "rank": 8
+        },
+        {
+          "file": "discrete-math/hw-6.pdf",
+          "page": 6,
+          "rank": 7
+        },
+        {
+          "file": "discrete-math/hw-6.pdf",
+          "page": 7,
+          "rank": 3
+        }
+      ]
+    },
+    {
+      "query": "Hall's theorem",
+      "recall": 0.0,
+      "relevant": [
+        {
+          "file": "dsa/hw4-written.pdf",
+          "page": 1,
+          "rank": 8
+        }
+      ]
+    },
+    {
+      "query": "dice problems",
+      "recall": 0.0,
+      "relevant": [
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 1,
+          "rank": null
+        }
+      ]
+    },
+    {
+      "query": "BFS",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 2,
+          "rank": 4
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 3,
+          "rank": 1
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 5,
+          "rank": 3
+        },
+        {
+          "file": "dsa/hw1-q1.pdf",
+          "page": 3,
+          "rank": 2
+        }
+      ]
+    },
+    {
+      "query": "DFS",
+      "recall": 1.0,
+      "relevant": [
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 3,
+          "rank": 3
+        },
+        {
+          "file": "dsa/final-review.pdf",
+          "page": 5,
+          "rank": 2
+        },
+        {
+          "file": "dsa/hw1-q1.pdf",
+          "page": 3,
+          "rank": 1
+        }
+      ]
+    },
+    {
+      "query": "conditional probability",
+      "recall": 0.4,
+      "relevant": [
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 1,
+          "rank": null
+        },
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 2,
+          "rank": 1
+        },
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 4,
+          "rank": null
+        },
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 5,
+          "rank": null
+        },
+        {
+          "file": "stats/assignment4.pdf",
+          "page": 10,
+          "rank": 2
+        },
+        {
+          "file": "stats/midterm-1-practice.pdf",
+          "page": 8,
+          "rank": null
+        },
+        {
+          "file": "stats/midterm-1-practice.pdf",
+          "page": 9,
+          "rank": null
+        }
+      ]
+    }
+  ]
+}
