@@ -20,36 +20,38 @@ class Extraction:
     output_tokens: int
 
 
+# Structured outputs guarantee a reply that finishes normally matches this
+# schema, so parse_output only checks what the schema can't express.
+OUTPUT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "transcript": {"type": "string"},
+        "concepts": {"type": "array", "items": {"type": "string"}},
+        "summary": {"type": "string"},
+    },
+    "required": ["transcript", "concepts", "summary"],
+    "additionalProperties": False,
+}
+
+
 def make_client(max_retries: int) -> AsyncAnthropic:
     return AsyncAnthropic(max_retries=max_retries)
 
 
 def parse_output(text: str) -> dict:
-    text = text.strip()
-    if text.startswith("```"):  # models sometimes wrap JSON in a code fence
-        text = text.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-
     try:
         data = json.loads(text)
     except json.JSONDecodeError as e:
         raise BadOutputError(f"invalid JSON: {e}") from e
 
-    if not isinstance(data, dict):
-        raise BadOutputError("not a JSON object")
+    if not data["transcript"].strip():
+        raise BadOutputError("'transcript' must be non-empty")
 
-    transcript = data.get("transcript")
-    concepts = data.get("concepts")
-    summary = data.get("summary")
+    if not (data["concepts"] and all(c.strip() for c in data["concepts"])):
+        raise BadOutputError("'concepts' must be a non-empty list of non-empty strings")
 
-    if not (isinstance(transcript, str) and transcript.strip()):
-        raise BadOutputError("'transcript' must be a non-empty string")
-
-    if not (isinstance(concepts, list) and concepts
-            and all(isinstance(c, str) and c.strip() for c in concepts)):
-        raise BadOutputError("'concepts' must be a non-empty list of strings")
-
-    if not (isinstance(summary, str) and summary.strip()):
-        raise BadOutputError("'summary' must be a non-empty string")
+    if not data["summary"].strip():
+        raise BadOutputError("'summary' must be non-empty")
 
     return data
 
@@ -65,6 +67,7 @@ class Extractor:
         response = await self.client.messages.create(
             model=self.model,
             max_tokens=self.max_tokens,
+            output_config={"format": {"type": "json_schema", "schema": OUTPUT_SCHEMA}},
             messages=[{
                 "role": "user",
                 "content": [

@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from notefinder.extract import BadOutputError, Extractor, parse_output
+from notefinder.extract import OUTPUT_SCHEMA, BadOutputError, Extractor, parse_output
 from notefinder.prompt import Prompt
 
 GOOD = {
@@ -45,17 +45,8 @@ def call(client, model="test-model", max_tokens=1000):
     return asyncio.run(extractor.extract(PNG, PROMPT))
 
 
-def without(key):
-    return {k: v for k, v in GOOD.items() if k != key}
-
-
 def test_parse_output_accepts_valid_json():
     assert parse_output(json.dumps(GOOD)) == GOOD
-
-
-@pytest.mark.parametrize("wrapper", ["```json\n{}\n```", "```\n{}\n```"])
-def test_parse_output_strips_code_fences(wrapper):
-    assert parse_output(wrapper.format(json.dumps(GOOD))) == GOOD
 
 
 def test_parse_output_rejects_invalid_json():
@@ -63,21 +54,12 @@ def test_parse_output_rejects_invalid_json():
         parse_output("not json at all")
 
 
-def test_parse_output_rejects_non_object():
-    with pytest.raises(BadOutputError, match="not a JSON object"):
-        parse_output("[1, 2, 3]")
-
-
 @pytest.mark.parametrize(
     "data, field",
     [
-        (without("transcript"), "transcript"),
-        ({**GOOD, "transcript": 5}, "transcript"),
-        (without("concepts"), "concepts"),
         ({**GOOD, "concepts": []}, "concepts"),
-        ({**GOOD, "concepts": ["ok", 3]}, "concepts"),
         ({**GOOD, "concepts": ["ok", "  "]}, "concepts"),
-        (without("summary"), "summary"),
+        ({**GOOD, "summary": ""}, "summary"),
         ({**GOOD, "summary": "   "}, "summary"),
         ({**GOOD, "transcript": ""}, "transcript"),
         ({**GOOD, "transcript": "  \n"}, "transcript"),
@@ -145,6 +127,9 @@ def test_extractor_sends_expected_message():
 
     assert sent["model"] == "some-model"
     assert sent["max_tokens"] == 1234
+    assert sent["output_config"] == {
+        "format": {"type": "json_schema", "schema": OUTPUT_SCHEMA},
+    }
     assert sent["messages"] == [{
         "role": "user",
         "content": [

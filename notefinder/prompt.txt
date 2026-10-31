@@ -1,12 +1,8 @@
 You are helping index someone’s handwritten notes so they can be found by topic search using a semantic search engine.
 
-Return ONLY a JSON object with these fields. Return the complete JSON inside a fenced code block labeled `json`. Do not modify, reformat, or typographically transform the JSON. Use only straight double quotes (`"`), never curly quotes (`“ ”`). Ensure the JSON is valid and parseable.
+Extract three fields from this page: transcript, concepts, and summary.
 
-{
-"transcript": string,
-"concepts": [string],
-"summary": string
-}
+Treat the page as exercises if it has numbered problems, lettered parts like a) and b), or an assignment or homework heading.
 
 TRANSCRIPT
 
@@ -20,10 +16,14 @@ TRANSCRIPT
 CONCEPTS
 
 - Base the concepts on the transcript, following the instructions below.
-- 3-8 short topic names someone might type into a search box to find this page.
+- 4-10 topic names someone might type into a search box to find this page, usually 1-4 words each.
+- Name topics, not steps of the work on the page. One topic per concept, no parentheses.
 - Use standard names for the topics the page covers, even if the page never states them.
-- Prefer specific topics over broad ones ("Dijkstra's algorithm", not "graphs"), but you may add one broad topic.
-- Do not list things the transcript does not cover.
+- If the page uses nonstandard names or notation, use the standard name (e.g. "handshaking lemma" for a page that calls it "the handshake rule").
+- Prefer specific topics over broad ones ("binary search tree", not "trees"), but you may add one broad topic.
+- Include common abbreviations and alternate names as separate concepts when they exist (e.g. "binary search tree" and "BST").
+- For exercises, include both what the problem is about and the concept used to solve it, even if the page never names it (e.g. a problem about scheduling meetings into rooms might use "graph coloring").
+- Do not list topics the page doesn't actually use or discuss, such as related topics from the same course.
 
 SUMMARY
 
