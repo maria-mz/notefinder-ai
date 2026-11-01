@@ -196,7 +196,7 @@ def test_shell_searches_each_query_and_loads_the_model_once(cli_db, shell_embedd
     result = run_shell_command("heaps", "", "tries")
 
     assert result.exit_code == 0, result.output
-    assert result.output.count("1. 1.000  heaps.pdf p.1") == 2
+    assert result.output.count("heaps.pdf  p.1") == 2
     assert len(shell_embedder) == 1
 
 
@@ -238,18 +238,36 @@ def test_print_sync_summary_prints_counts_and_failures_to_stderr(capsys, tmp_pat
     assert err == f"  {job.id}: RuntimeError: API down\n"
 
 
-def test_print_search_results_prints_rank_score_page_and_summary(capsys):
+def test_print_search_results_prints_each_page_summary_and_concepts(capsys,
+                                                                    monkeypatch):
+    monkeypatch.setenv("COLUMNS", "80")
+    summary = ("OS notes: " + "paging and TLBs, " * 12).rstrip(", ") + "."  # wraps
     results = [
-        db.SearchResult(PageId("os.pdf", 2), "Paging and TLBs.", ["paging"], 0.8123),
-        db.SearchResult(PageId("os.pdf", 5), "Cache coherence.", ["caches"], 0.7),
+        db.SearchResult(PageId("os/memory.pdf", 2), summary, ["TLB", "paging"], 0.8123),
+        db.SearchResult(PageId("caches.pdf", 5), "Cache coherence.", ["MESI"], 0.7),
     ]
 
-    cli.print_search_results(results)
+    cli.print_search_results(results, seconds=0.0149)
 
-    lines = capsys.readouterr().out.splitlines()
-    assert lines[0] == f"1. 0.812  {results[0].id}"
-    assert lines[1].strip() == "Paging and TLBs."
-    assert f"2. 0.700  {results[1].id}" in lines
+    out = capsys.readouterr().out
+    lines = out.splitlines()
+    assert lines[0].startswith(" 1  memory.pdf  p.2")
+    assert lines[0].endswith("os/ · 0.81")
+    concepts = lines.index("    ▸ TLB · paging")
+    assert " ".join(line.strip() for line in lines[1:concepts]) == summary  # in full
+    assert lines[concepts + 2].startswith(" 2  caches.pdf  p.5")
+    assert lines[concepts + 2].endswith(" 0.70")
+    assert lines[-1] == "2 pages · 15 ms"
+    assert all(line == line.rstrip() for line in lines)
+
+
+def test_concepts_text_fits_the_width():
+    concepts = ["paging", "translation lookaside buffer", "segmentation"]
+
+    assert cli.concepts_text(concepts, 60).plain == (
+        "▸ paging · translation lookaside buffer · segmentation")
+    assert cli.concepts_text(concepts, 30).plain == "▸ paging · …"
+    assert cli.concepts_text(concepts, 5).plain == "▸ paging · …"  # always one
 
 
 def test_print_eval_results_prints_recall_and_misses(capsys):

@@ -3,7 +3,6 @@ import logging
 import os
 import readline  # adds arrow keys and history to input(), for `shell`
 import shutil
-import textwrap
 import time
 from collections import Counter
 from datetime import datetime, timezone
@@ -13,6 +12,9 @@ from typing import Annotated, Callable
 import psycopg
 import typer
 import yaml
+from rich.console import Console
+from rich.table import Table
+from rich.text import Text
 
 from notefinder import db
 from notefinder.config import APP_CONFIG, AppConfig
@@ -223,10 +225,35 @@ def sync(
         raise typer.Exit(1)
 
 
-def print_search_results(results: list[db.SearchResult]) -> None:
-    """Print each result's rank, score, and page, then its summary, shortened.
+def concepts_text(concepts: list[str], width: int) -> Text:
+    """One dimmed line of a page's concepts, in stored order.
+
+    :param concepts: The page's concepts.
+    :param width: The most characters to use. Concepts that don't fit become "…".
+    :returns: The line.
+    """
+    text = Text("▸ ", style="dim")
+    for i, concept in enumerate(concepts):
+        sep = " · " if i else ""
+        if i and len(text) + len(sep) + len(concept) + len(" · …") > width:
+            text.append(" · …")
+            break
+        text.append(sep + concept)
+    return text
+
+
+def print_indented(console: Console, text: Text) -> None:
+    """Print text wrapped to the console's width, every line indented 4 spaces."""
+    for line in text.wrap(console, console.width - 4):
+        line.rstrip()
+        console.print(Text("    ") + line)
+
+
+def print_search_results(results: list[db.SearchResult], seconds: float) -> None:
+    """Print each result's page, then its summary and concepts, then the time taken.
 
     :param results: The results, best first. If empty, says to sync.
+    :param seconds: How long the search took.
     """
     if not results:
         typer.echo(
@@ -234,17 +261,25 @@ def print_search_results(results: list[db.SearchResult]) -> None:
         )
         return
 
-    width = min(shutil.get_terminal_size().columns, 100)
-
-    def indented(text: str) -> str:
-        return textwrap.fill(
-            text, width=width, initial_indent="   ", subsequent_indent="   "
-        )
-
+    console = Console(width=min(shutil.get_terminal_size().columns, 100),
+                      highlight=False)
     for rank, r in enumerate(results, start=1):
-        typer.echo(f"{rank}. {r.score:.3f}  {r.id}")
-        typer.echo(indented(textwrap.shorten(r.summary, width=160)))
-        typer.echo()
+        folder, _, file = r.id.source_file.rpartition("/")
+        heading = Table.grid(expand=True)
+        heading.add_column()
+        heading.add_column(justify="right", style="dim")
+        heading.add_row(
+            Text.assemble(f"{rank:>2}  ", (file, "bold bright_cyan"), "  ",
+                          (f"p.{r.id.page_num}", "bright_cyan")),
+            f"{folder}/ · {r.score:.2f}" if folder else f"{r.score:.2f}",
+        )
+        console.print(heading)
+        print_indented(console, Text(r.summary))
+        print_indented(console, concepts_text(r.concepts, console.width - 4))
+        console.print()
+
+    pages = "page" if len(results) == 1 else "pages"
+    console.print(f"{len(results)} {pages} · {seconds * 1000:.0f} ms", style="dim")
 
 
 @app.command()
@@ -260,9 +295,10 @@ def search(
 
     with connect() as conn:
         embedder = Embedder(APP_CONFIG.embed_model, APP_CONFIG.query_prefix)
+        start = time.perf_counter()
         results = run_search(conn, embedder, query, k)
 
-    print_search_results(results)
+    print_search_results(results, time.perf_counter() - start)
 
 
 @app.command()
@@ -286,6 +322,7 @@ def shell(
                 query = input("search> ").strip()
                 if not query:
                     continue
+                start = time.perf_counter()
                 try:
                     results = run_search(conn, embedder, query, k)
                 except psycopg.OperationalError:
@@ -293,7 +330,7 @@ def shell(
                     conn.close()
                     conn = connect()
                     results = run_search(conn, embedder, query, k)
-                print_search_results(results)
+                print_search_results(results, time.perf_counter() - start)
             except KeyboardInterrupt:  # drops the current line, like other shells
                 typer.echo()
             except EOFError:  # Ctrl-D
